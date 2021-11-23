@@ -5,7 +5,7 @@ using InformationMeasures, GLMNet, StatsBase, Statistics
 include("decoder.jl")
 include("mutual_info.jl")
 include("util.jl")
-include("crossvalidate.jl")
+include("cv.jl")
 include("cost.jl")
 
 export
@@ -24,7 +24,7 @@ export
     reg_L2,
     reg_var_L1,
     reg_var_L2,
-    # crossvalidate.jl
+    # cv.jl
     add_sampling,
     generate_cv_splits,
     rm_dataset_begin,

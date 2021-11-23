@@ -4,7 +4,6 @@ using InformationMeasures, GLMNet, StatsBase, Statistics
 
 include("decoder.jl")
 include("mutual_info.jl")
-include("util.jl")
 include("cv.jl")
 include("cost.jl")
 

@@ -11,11 +11,11 @@ include("cost.jl")
 export
     # decoder.jl
     train_decoder,
-    # mutual_info.jl
-    compute_mutual_information_dict,
-    # util.jl
 
-    # metric.jl
+# mutual_info.jl
+    compute_mutual_information_dict,
+
+# metric.jl
     cost_rss,
     cost_abs,
     cost_mse,
@@ -24,6 +24,7 @@ export
     reg_L2,
     reg_var_L1,
     reg_var_L2,
+
     # cv.jl
     add_sampling,
     generate_cv_splits,

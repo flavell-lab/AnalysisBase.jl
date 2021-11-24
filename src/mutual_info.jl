@@ -9,7 +9,7 @@ Returns dictionary and heatmap-compatible array.
 """
 function compute_mutual_information_dict(data_dict, vars; multivar_idx=1)
     mutual_info_dict = Dict()
-    hmap_mi = zeros(data_dict["num_neurons"],length(param["vars"]))
+    hmap_mi = zeros(data_dict["num_neurons"],length(vars))
     for (i,key) in enumerate(vars)
         if length(size(data_dict[key])) == 1
             mutual_info_dict[key] = zeros(data_dict["num_neurons"])

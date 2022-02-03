@@ -1,4 +1,32 @@
 """
+Generate K fold cross-validation splits. Returns list of (train, test)
+
+# Arguments:
+- `k`: K fold splits
+- `idx_splits`: list of time points for videos. e.g. if 2 videos of total length 1600 splitted at 800, `[1:800, 801:1600]`
+- `trim_split`: time points `(first, last)` to trim in each video. (50,0) trims first 50 time points and 0 last tiem points
+"""
+function kfold_cv_split(k, idx_splits, trim_split=(50,0))
+    list_t_split_trim = []
+    for i = 1:length(idx_splits)
+        rg = idx_splits[i]
+        rg = (rg[1]+trim_split[1]):(rg[end]-trim_split[2])
+        push!(list_t_split_trim, rg)
+    end
+    
+    rg_combined = union(list_t_split_trim...)
+
+    list_split = []
+    for split = Base.Iterators.partition(rg_combined, round(Int, length(rg_combined)/k))
+        idx_test = split
+        idx_train = setdiff(rg_combined, split)
+        push!(list_split, (idx_train, idx_test))
+    end
+    
+    list_split
+end
+
+"""
 Generates uniformly-spaced cross-validation splits, subject to the constraint that
 the testing data must be contiguous.
 

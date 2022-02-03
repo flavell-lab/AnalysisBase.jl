@@ -28,6 +28,7 @@ export
     add_sampling,
     generate_cv_splits,
     rm_dataset_begin,
-    rm_low_variation
+    rm_low_variation,
+    kfold_cv_split
 
 end # module

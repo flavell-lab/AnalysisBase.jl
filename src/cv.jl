@@ -50,8 +50,8 @@ end
 Removes beginning of each video from total timepoints `t_range` given video splits `idx_splits`,
     to avoid `ewma` issues.
 """
-function rm_dataset_begin(t_range, idx_splits; thresh=50)
-    return [t for t in t_range if !any([abs(t-s[1]) <= thresh for s in idx_splits])]
+function rm_dataset_begin(t_range, idx_splits; n_remove=50)
+    return setdiff(t_range, union(map(x->x[1]:x[1]+(n_remove-1), idx_splits)...))
 end
 
 """

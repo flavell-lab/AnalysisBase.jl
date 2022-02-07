@@ -29,6 +29,7 @@ export
     generate_cv_splits,
     rm_dataset_begin,
     rm_low_variation,
-    kfold_cv_split
+    kfold_cv_split,
+    trim_idx_splits
 
 end # module

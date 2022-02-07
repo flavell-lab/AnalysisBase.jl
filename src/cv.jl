@@ -82,6 +82,18 @@ function rm_dataset_begin(t_range, idx_splits; n_remove=50)
     return setdiff(t_range, union(map(x->x[1]:x[1]+(n_remove-1), idx_splits)...))
 end
 
+function trim_idx_splits(idx_splits::Vector{UnitRange{Int64}}, trim=(50,0))
+    idx_splits_trim = UnitRange{Int64}[]
+    for i = 1:length(idx_splits)
+        start = idx_splits[i][1] + trim[1]
+        stop =  idx_splits[i][end] - trim[2]
+        push!(idx_splits_trim, start:stop)
+    end
+
+    idx_splits_trim
+end
+
+        
 """
 Removes splits with low training behavior variation.
 

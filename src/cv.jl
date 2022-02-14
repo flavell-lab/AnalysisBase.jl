@@ -1,4 +1,36 @@
 """
+Generate 2-way continuous cross-validation splits. Returns list of [train, test]
+# Arguments:
+- `idx_splits`: list of time points for videos. e.g. if 2 videos of total length 1600 splitted at 800, `[1:800, 801:1600]`
+- `trim`: time points to trim in the beginning of each video
+- `frac_train`: training set fraction (default=0.7)
+"""
+
+function continuous_cv_split(idx_splits, trim::Int=50, frac_train=0.7)
+    n_trim = trim * (length(idx_splits) + 1)
+    t_max = idx_splits[end][end]
+    n_trimmed = t_max - n_trim
+    
+    n_train = round(Int, frac_train * n_trimmed)
+    n_test = round(Int, (1 - frac_train) * n_trimmed)
+    
+    @assert(n_train + n_test == n_trimmed)
+    
+    idx_splits_trim = vcat(trim_idx_splits(idx_splits, (trim,0))...)
+    
+    list_split = Vector{Vector{Int}}[]
+    train = idx_splits_trim[1:n_train]
+    test = idx_splits_trim[n_train+51:n_train+50+n_test]
+    push!(list_split, [train, test])
+    
+    test = idx_splits_trim[1:n_test]
+    train = idx_splits_trim[n_test+51:n_test+50+n_train]
+    push!(list_split, [train, test])
+    
+    list_split
+end
+
+"""
 Generate K fold cross-validation splits. Returns list of (train, test)
 
 # Arguments:

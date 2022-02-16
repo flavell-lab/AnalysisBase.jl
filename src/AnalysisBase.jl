@@ -23,6 +23,7 @@ export
     reg_L2,
     reg_var_L1,
     reg_var_L2,
+    reg_L1_nl7,
 
     # cv.jl
     add_sampling,

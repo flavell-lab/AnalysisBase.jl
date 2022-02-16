@@ -55,3 +55,7 @@ end
 function reg_L2(ps)
     sum(ps .^ 2)
 end
+        
+function reg_L1_nl7(ps)
+    sum(abs.(vcat(sin(ps[1]), ps[2:end])))
+end

@@ -31,28 +31,41 @@ function continuous_cv_split(idx_splits, trim::Int=50, frac_train=0.7)
 end
 
 """
-Generate K fold cross-validation splits. Returns list of (train, test)
-
+Generate K fold cross-validation splits. Returns list of [train, test]
 # Arguments:
 - `k`: K fold splits
 - `idx_splits`: list of time points for videos. e.g. if 2 videos of total length 1600 splitted at 800, `[1:800, 801:1600]`
-- `trim_split`: time points `(first, last)` to trim in each video. (50,0) trims first 50 time points and 0 last tiem points
+- `trim`: number of time points to trim for ewma. default: 50
+- `gap`: gap between train and test. default: 50
 """
-function kfold_cv_split(k, idx_splits, trim_split=(50,0))
+function kfold_cv_split(k, idx_splits, trim::Int=50, gap::Int=50)
     list_t_split_trim = []
     for i = 1:length(idx_splits)
         rg = idx_splits[i]
-        rg = (rg[1]+trim_split[1]):(rg[end]-trim_split[2])
+        rg = (rg[1]+trim[1]):rg[end]
         push!(list_t_split_trim, rg)
     end
-    
     rg_combined = union(list_t_split_trim...)
 
-    list_split = []
-    for split = Base.Iterators.partition(rg_combined, round(Int, length(rg_combined)/k))
+    list_split = Vector{Vector{Int64}}[]
+    for split = Base.Iterators.partition(rg_combined, round(Int, length(rg_combined) / k))
         idx_test = split
         idx_train = setdiff(rg_combined, split)
-        push!(list_split, (idx_train, idx_test))
+        
+        # train begin
+        idx_test_gap = idx_test[1]:(idx_test[1]+round(Int, gap/2)-1)
+        idx_train_gap = (idx_test[1]-round(Int, gap/2)):(idx_test[1]-1)
+        idx_test = setdiff(idx_test, idx_test_gap)
+        idx_train = setdiff(idx_train, idx_train_gap)
+        
+        # train end
+        idx_test_gap = (idx_test[end]-round(Int, gap/2)+1):idx_test[end]
+        idx_train_gap = (idx_test[end]+1):(idx_test[end]+round(Int, gap/2))
+        idx_test = setdiff(idx_test, idx_test_gap)
+        idx_train = setdiff(idx_train, idx_train_gap)
+        
+        # println("train: $(length(idx_train)) test: $(length(idx_test))")
+        push!(list_split, [idx_train, idx_test])
     end
     
     list_split

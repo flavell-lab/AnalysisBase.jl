@@ -1,4 +1,77 @@
 """
+Generate 2-way continuous cross-validation splits. Returns list of [train, test]
+# Arguments:
+- `idx_splits`: list of time points for videos. e.g. if 2 videos of total length 1600 splitted at 800, `[1:800, 801:1600]`
+- `trim`: time points to trim in the beginning of each video
+- `frac_train`: training set fraction (default=0.7)
+"""
+
+function continuous_cv_split(idx_splits, trim::Int=50, frac_train=0.7)
+    n_trim = trim * (length(idx_splits) + 1)
+    t_max = idx_splits[end][end]
+    n_trimmed = t_max - n_trim
+    
+    n_train = round(Int, frac_train * n_trimmed)
+    n_test = round(Int, (1 - frac_train) * n_trimmed)
+    
+    @assert(n_train + n_test == n_trimmed)
+    
+    idx_splits_trim = vcat(trim_idx_splits(idx_splits, (trim,0))...)
+    
+    list_split = Vector{Vector{Int}}[]
+    train = idx_splits_trim[1:n_train]
+    test = idx_splits_trim[n_train+51:n_train+50+n_test]
+    push!(list_split, [train, test])
+    
+    test = idx_splits_trim[1:n_test]
+    train = idx_splits_trim[n_test+51:n_test+50+n_train]
+    push!(list_split, [train, test])
+    
+    list_split
+end
+
+"""
+Generate K fold cross-validation splits. Returns list of [train, test]
+# Arguments:
+- `k`: K fold splits
+- `idx_splits`: list of time points for videos. e.g. if 2 videos of total length 1600 splitted at 800, `[1:800, 801:1600]`
+- `trim`: number of time points to trim for ewma. default: 50
+- `gap`: gap between train and test. default: 50
+"""
+function kfold_cv_split(k, idx_splits, trim::Int=50, gap::Int=50)
+    list_t_split_trim = []
+    for i = 1:length(idx_splits)
+        rg = idx_splits[i]
+        rg = (rg[1]+trim[1]):rg[end]
+        push!(list_t_split_trim, rg)
+    end
+    rg_combined = union(list_t_split_trim...)
+
+    list_split = Vector{Vector{Int64}}[]
+    for split = Base.Iterators.partition(rg_combined, round(Int, length(rg_combined) / k))
+        idx_test = split
+        idx_train = setdiff(rg_combined, split)
+        
+        # train begin
+        idx_test_gap = idx_test[1]:(idx_test[1]+round(Int, gap/2)-1)
+        idx_train_gap = (idx_test[1]-round(Int, gap/2)):(idx_test[1]-1)
+        idx_test = setdiff(idx_test, idx_test_gap)
+        idx_train = setdiff(idx_train, idx_train_gap)
+        
+        # train end
+        idx_test_gap = (idx_test[end]-round(Int, gap/2)+1):idx_test[end]
+        idx_train_gap = (idx_test[end]+1):(idx_test[end]+round(Int, gap/2))
+        idx_test = setdiff(idx_test, idx_test_gap)
+        idx_train = setdiff(idx_train, idx_train_gap)
+        
+        # println("train: $(length(idx_train)) test: $(length(idx_test))")
+        push!(list_split, [idx_train, idx_test])
+    end
+    
+    list_split
+end
+
+"""
 Generates uniformly-spaced cross-validation splits, subject to the constraint that
 the testing data must be contiguous.
 
@@ -50,10 +123,22 @@ end
 Removes beginning of each video from total timepoints `t_range` given video splits `idx_splits`,
     to avoid `ewma` issues.
 """
-function rm_dataset_begin(t_range, idx_splits; thresh=50)
-    return [t for t in t_range if !any([abs(t-s[1]) <= thresh for s in idx_splits])]
+function rm_dataset_begin(t_range, idx_splits; n_remove=50)
+    return setdiff(t_range, union(map(x->x[1]:x[1]+(n_remove-1), idx_splits)...))
 end
 
+function trim_idx_splits(idx_splits::Vector{UnitRange{Int64}}, trim=(50,0))
+    idx_splits_trim = UnitRange{Int64}[]
+    for i = 1:length(idx_splits)
+        start = idx_splits[i][1] + trim[1]
+        stop =  idx_splits[i][end] - trim[2]
+        push!(idx_splits_trim, start:stop)
+    end
+
+    idx_splits_trim
+end
+
+        
 """
 Removes splits with low training behavior variation.
 
